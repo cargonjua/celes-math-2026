@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mates en Práctica</title>
+<style>
+:root{--p:#4f46e5;--pd:#4338ca;--ok:#16a34a;--bad:#dc2626;--t:#1e293b;--m:#64748b;--b:#e2e8f0;--bg:#eef2ff}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:linear-gradient(160deg,#eef2ff,#e0f2fe);color:var(--t);min-height:100vh}
+.wrap{max-width:700px;margin:0 auto;padding:22px 14px 60px}
+h1{font-size:1.6rem;margin:0 0 4px}
+.sub{color:var(--m);margin:0 0 20px;font-size:.95rem}
+.card{background:#fff;border-radius:16px;padding:22px;box-shadow:0 8px 24px rgba(15,23,42,.08);margin-bottom:14px}
+.temas{display:grid;gap:12px}
+.tema{display:flex;gap:14px;align-items:center;text-align:left;width:100%;padding:18px;border:2px solid var(--b);border-radius:14px;background:#fff;cursor:pointer;font-size:1rem;transition:.15s}
+.tema:hover{border-color:var(--p);background:#f5f3ff;transform:translateY(-2px)}
+.tema .ico{font-size:2rem;line-height:1}
+.tema b{display:block;font-size:1.08rem}
+.tema span{color:var(--m);font-size:.85rem}
+.prog{display:flex;gap:5px;margin-bottom:14px}
+.pt{flex:1;height:8px;border-radius:4px;background:#dbe3ef}
+.pt.ok{background:var(--ok)}.pt.bad{background:var(--bad)}.pt.now{background:var(--p)}
+.meta{display:flex;justify-content:space-between;align-items:center;color:var(--m);font-size:.85rem;margin-bottom:12px}
+.q{font-size:1.15rem;line-height:1.7;background:#f8fafc;border:1px solid var(--b);border-radius:12px;padding:16px;margin-bottom:14px}
+.opts{display:grid;gap:10px}
+.op{display:flex;gap:12px;align-items:center;width:100%;padding:13px 15px;border:2px solid var(--b);border-radius:12px;background:#fff;font-size:1.02rem;text-align:left;cursor:pointer;transition:.12s;color:var(--t);font-family:inherit}
+.op:hover:not(:disabled){border-color:var(--p);background:#f5f3ff}
+.op:disabled{cursor:default;opacity:.75}
+.op .l{width:26px;height:26px;border-radius:8px;background:#f1f5f9;display:grid;place-items:center;font-weight:700;color:var(--m);flex:none;font-size:.85rem}
+.op.right{border-color:var(--ok);background:#f0fdf4;color:#14532d;font-weight:600;opacity:1}
+.op.right .l{background:var(--ok);color:#fff}
+.op.wrong{border-color:var(--bad);background:#fef2f2;color:#7f1d1d;text-decoration:line-through}
+.op.wrong .l{background:var(--bad);color:#fff}
+.fb{margin-top:14px;padding:14px 16px;border-radius:12px;background:#f8fafc;border:1px solid var(--b);line-height:1.6;font-size:.95rem}
+.fb.good{background:#f0fdf4;border-color:#bbf7d0}
+.fb.bad{background:#fef2f2;border-color:#fecaca}
+.fb .t{font-weight:700;margin-bottom:6px}
+.fb .t.g{color:#166534}.fb .t.b{color:#991b1b}.fb .t.n{color:#475569}
+.acts{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap}
+.btn{padding:12px 20px;border-radius:10px;border:0;background:var(--p);color:#fff;font-size:1rem;font-weight:600;cursor:pointer;font-family:inherit}
+.btn:hover{background:var(--pd)}
+.btn.ghost{background:#fff;color:var(--p);border:2px solid var(--p)}
+.nota{font-size:2.4rem;font-weight:800;color:var(--p);margin:6px 0}
+.rep{border:1px solid var(--b);border-radius:10px;padding:12px;margin-bottom:8px;background:#fff}
+.rep .ej{font-weight:600;font-size:.92rem}
+.rep .sol{color:#166534;font-size:.9rem}
+.rep .exp{color:var(--m);font-size:.85rem;margin-top:4px}
+.foot{text-align:center;color:var(--m);font-size:.8rem;margin-top:22px}
+@media(max-width:480px){h1{font-size:1.35rem}.q{font-size:1.05rem}}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script>
+"use strict";
+var rnd=function(a,b){return Math.floor(Math.random()*(b-a+1))+a};
+var choice=function(a){return a[Math.floor(Math.random()*a.length)]};
+function shuffle(a){var c=a.slice();for(var i=c.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=c[i];c[i]=c[j];c[j]=t}return c}
+function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){var t=a%b;a=b;b=t}return a||1}
+function F(n,d){if(d<0){n=-n;d=-d}var g=gcd(n,d);return{n:n/g,d:d/g}}
+function fAdd(a,b){return F(a.n*b.d+b.n*a.d,a.d*b.d)}
+function fSub(a,b){return F(a.n*b.d-b.n*a.d,a.d*b.d)}
+function fMul(a,b){return F(a.n*b.n,a.d*b.d)}
+function fDiv(a,b){return F(a.n*b.d,a.d*b.n)}
+function fStr(f){return f.d===1?String(f.n):f.n+"/"+f.d}
+var lcm=function(a,b){return a*b/gcd(a,b)};
+var dec=function(n){return String(n).replace(".",",")};
+function decN(v){v=Math.round(v*1e6)/1e6;return dec(v)}
+var SUP={"0":"⁰","1":"¹","2":"²","3":"³","4":"⁴","5":"⁵","6":"⁶","7":"⁷","8":"⁸","9":"⁹","-":"⁻"};
+function mono(c,e){var a=Math.abs(c);if(e===0)return a+"";return (a===1?"x"+sup(e):a+"x"+sup(e))}
+function sup(n){var s=String(n),o="";for(var i=0;i<s.length;i++)o+=SUP[s[i]]||s[i];return o}
+var SUB={"0":"₀","1":"₁","2":"₂","3":"₃","4":"₄","5":"₅","6":"₆","7":"₇","8":"₈","9":"₉"};
+function sb(n){var s=String(n),o="";for(var i=0;i<s.length;i++)o+=SUB[s[i]]||s[i];return o}
+function termStr(c,e,first){if(!c)return"";var s=first?(c<0?"-":""):(c<0?" - ":" + ");var a=Math.abs(c),t;if(e===0)t=String(a);else if(e===1)t=a===1?"x":a+"x";else t=a===1?"x"+sup(e):a+"x"+sup(e);return s+t}
+function polyStr(c){var ex=Object.keys(c).map(Number).sort(function(a,b){return b-a}),s="";for(var i=0;i<ex.length;i++)s+=termStr(c[ex[i]],ex[i],s==="");return s||"0"}
+function polyAdd(p,q){var r={},k;for(k in p)r[k]=p[k];for(k in q){r[k]=(r[k]||0)+q[k];if(!r[k])delete r[k]}return r}
+function polyScale(p,m){var r={};for(var k in p){var v=p[k]*m;if(v)r[k]=v}return r}
+function polyMul(p,q){var r={};for(var a in p)for(var b in q){var e=+a+ +b;r[e]=(r[e]||0)+p[a]*q[b];if(!r[e])delete r[e]}return r}
+function fromArr(desc){var o={},n=desc.length-1;for(var i=0;i<desc.length;i++)if(desc[i])o[n-i]=desc[i];return o}
+function polyVariants(p){var out=[],base=polyStr(p),ex=Object.keys(p).map(Number),n,tries=0;while(out.length<6&&tries<60){tries++;var c={},k;for(k in p)c[k]=p[k];if(!ex.length)break;var e=choice(ex),t=rnd(1,4);if(t===1)c[e]=-c[e];else if(t===2&&ex.length>1)delete c[e];else if(t===3)c[e]=c[e]+choice([1,-1,2,-2,3]);else{var e2=choice(ex);if(e!==e2){var v=c[e];delete c[e];c[e2]=(c[e2]||0)+v}}var s=polyStr(c);if(s!==base&&out.indexOf(s)<0)out.push(s)}return out}
+var INF=Infinity;
+function mkIv(lo,loO,hi,hiO){return{lo:lo,loOpen:hi===INF?true:(lo===-INF?true:loO),hi:hi,hiOpen:hi===INF?true:hiO}}
+function ivStr(i){if(i.two)return ivStr(i.a)+" ∪ "+ivStr(i.b);var l=i.lo===-INF?"-∞":dec(i.lo),r=i.hi===INF?"∞":dec(i.hi);return(i.loOpen?"(":"[")+l+", "+r+(i.hiOpen?")":"]")}
+function ivInter(a,b){var lo,loO,hi,hiO;if(a.lo>b.lo){lo=a.lo;loO=a.loOpen}else if(b.lo>a.lo){lo=b.lo;loO=b.loOpen}else{lo=a.lo;loO=a.loOpen||b.loOpen}if(a.hi<b.hi){hi=a.hi;hiO=a.hiOpen}else if(b.hi<a.hi){hi=b.hi;hiO=b.hiOpen}else{hi=a.hi;hiO=a.hiOpen||b.hiOpen}if(lo>hi)return null;if(lo===hi&&(loO||hiO))return null;return{lo:lo,loOpen:loO,hi:hi,hiOpen:hiO}}
+function ivUnion(a,b){var lo,loO,hi,hiO;
+ if(a.lo<b.lo){lo=a.lo;loO=a.loOpen}else if(b.lo<a.lo){lo=b.lo;loO=b.loOpen}else{lo=a.lo;loO=a.loOpen&&b.loOpen}
+ if(a.hi>b.hi){hi=a.hi;hiO=a.hiOpen}else if(b.hi>a.hi){hi=b.hi;hiO=b.hiOpen}else{hi=a.hi;hiO=a.hiOpen&&b.hiOpen}
+ return{lo:lo,loOpen:loO,hi:hi,hiOpen:hiO}}
+function flipO(i){var j={lo:i.lo,hi:i.hi,loOpen:!i.loOpen,hiOpen:!i.hiOpen};if(i.lo!==-INF&&i.hi!==INF)return j;return null}
+function other(i){return{lo:i.lo,loOpen:i.loOpen,hi:i.hi,hiOpen:!i.hiOpen}}
+/* ---------- distractores genéricos ---------- */
+function tCoef(c,v){var a=Math.abs(c);var t=c<0?"- ":"+ ";return t+(a===1?v:a+v)}
+function tConst(c){return c<0?"- "+(-c):"+ "+c}
+function quad0(b,c){var s="x²";if(b!==0)s+=" "+tCoef(b,"x");if(c!==0)s+=" "+tConst(c);return s}
+function lin2(a,b){var s="";var f=function(c,v){if(c===0)return"";return (c<0?((s==="")?"-":"- "):((s==="")?"":"+ "))+(Math.abs(c)===1?v:Math.abs(c)+v)};
+ var t=f(a,"x");s+=t;var t2=f(b,"y");if(t2)s+=(s?" ":"")+t2;return s}
+function lin3(a,b,c){var s="";var f=function(c,v){if(c===0)return"";return (c<0?((s==="")?"-":"- "):((s==="")?"":"+ "))+(Math.abs(c)===1?v:Math.abs(c)+v)};
+ var t=f(a,"x");s+=t;var t2=f(b,"y");if(t2)s+=(s?" ":"")+t2;var t3=f(c,"z");if(t3)s+=(s?" ":"")+t3;return s}
+function eqD(v){return["x = "+(v-1),"x = "+(v+1),"x = "+(-v),"x = "+(v+2),"x = "+(v-2),"x = "+(v+3),"x = "+(-(v+1)),"x = "+Math.abs(v)]}
+function eq2(r,s){return["x = "+(-r)+" y x = "+(-s),"x = "+r+" y x = "+(-s),"x = "+(-r)+" y x = "+s,"x = "+(r+s)+" y x = "+(r*s)]}
+function sysD(x,y){return["(x, y) = ("+y+", "+x+")","(x, y) = ("+(-x)+", "+y+")","(x, y) = ("+x+", "+(-y)+")","(x, y) = ("+(x+1)+", "+(-y)+")","(x, y) = ("+y+", "+(-x)+")","(x, y) = ("+(-x)+", "+(-y)+")","(x, y) = ("+(x-1)+", "+(-y)+")","(x, y) = ("+(-y)+", "+x+")"]}
+function sys3D(x,y,z){return["(x, y, z) = ("+(-x)+", "+y+", "+z+")","(x, y, z) = ("+x+", "+(-y)+", "+z+")","(x, y, z) = ("+x+", "+y+", "+(-z)+")","(x, y, z) = ("+y+", "+x+", "+z+")","(x, y, z) = ("+z+", "+y+", "+x+")","(x, y, z) = ("+(-x)+", "+(-y)+", "+z+")","(x, y, z) = ("+x+", "+(-y)+", "+(-z)+")","(x, y, z) = ("+(-z)+", "+y+", "+(-x)+")"]}
+/* ---------- TEMA 1: NÚMEROS REALES ---------- */
+var RE=[];
+RE.push(function(){var d1=rnd(2,9),d2=rnd(2,9),n1=rnd(2,9),n2=rnd(2,9),op=choice(["+","-"]);
+ if(op==="-"&&n1*d2<=n2*d1){var t=n1;n1=n2;n2=t}
+ var a=F(n1,d1),b=F(n2,d2),ok=op==="+"?fAdd(a,b):fSub(a,b),m=lcm(d1,d2),k1=n1*(m/d1),k2=n2*(m/d2),p=op==="+"?k1+k2:k1-k2;
+ var raw=op==="+"?n1*d2+n2*d1:n1*d2-n2*d1,rw=raw+"/"+(d1*d2);if(rw===fStr(ok))rw=null;
+ return{en:"Calcula: "+fStr(a)+" "+op+" "+fStr(b),ok:fStr(ok),
+ d:[rw,fStr(F(n1+n2,d1+d2)),fStr(F(n1+(op==="+"?n2:-n2),d1*d2)),fStr(op==="+"?fSub(a,b):fAdd(a,b))].filter(function(x){return x!==null}),
+ ex:"Para "+op+" fracciones con distinto denominador usamos el m.c.m.<br>m.c.m.("+d1+", "+d2+") = "+m+".<br>"+n1+"/"+d1+" = "+k1+"/"+m+" y "+n2+"/"+d2+" = "+k2+"/"+m+".<br>("+k1+" "+op+" "+k2+")/"+m+" = "+p+"/"+m+" → <b>"+fStr(ok)+"</b>",
+ pi:"Recuerda: para sumar o restar fracciones el denominador debe ser el mismo. Usa el mínimo común múltiplo."}});
+RE.push(function(){var d1=rnd(2,9),d2=rnd(2,9),n1=rnd(1,9),n2=rnd(1,9),op=choice(["·","÷"]);
+ var a=F(n1,d1),b=F(n2,d2),ok=op==="·"?fMul(a,b):fDiv(a,b),d=[];
+ if(op==="·"){d.push(fStr(F(n1+n2,d1+d2)));d.push(fStr(F(n1*d2,d1*n2)));d.push(fStr(F(n1*n2,d1+d2)))}
+ else{d.push(fStr(F(n1*n2,d1*d2)));d.push(fStr(fDiv(b,a)));d.push(fStr(F(n1*d1,d2*n2)))}
+ d.push(n1*n2+"/"+d1*d2);
+ return{en:"Calcula: "+fStr(a)+" "+op+" "+fStr(b),ok:fStr(ok),d:d,
+ ex:"Se multiplica <b>en línea</b>: numerador con numerador y denominador con denominador."+(op==="÷"?" Para dividir se invierte la segunda fracción.":"")+"<br>"+(op==="÷"?fStr(a)+" ÷ "+fStr(b)+" = "+fStr(a)+" · "+fStr(F(d2,n2)):"("+n1+"·"+n2+")/("+d1+"·"+d2+")")+" = "+fStr(ok)+".<br>Simplifica el resultado.",
+ pi:"Para dividir fracciones no se multiplica en cruz: se invierte la segunda y se multiplica en línea."}});
+RE.push(function(){var v=rnd(1,4),A=rnd(2,30),B=rnd(2,9),C=rnd(2,9),D=rnd(1,12),t=choice(["s","r","m"]),en,val,d;if(C%D)C=D*rnd(2,9);
+ if(t==="s"){en=A+" + "+B+"·("+C+" - "+D+")";val=A+B*(C-D);d=[(A+B)*(C-D),A+B*(C+D),(A+B)*(C+D)]}
+ else if(t==="r"){en="("+A+" + "+B+")·"+C+" - "+D;val=(A+B)*C-D;d=[(A+B)*(C-D),(A+B)*C+D,A+B*C-D]}
+ else{if(C%D!==0){C=D*rnd(2,9)}en=A+" - "+B+"·"+C+" ÷ "+D;val=A-B*C/D;d=[A+B*C/D,(A-B)*C/D,(A-B)*(C/D)]}
+ d.push(val+(choice([1,-1,2])));
+ return{en:"Calcula: "+en,ok:String(val),d:d.map(String),
+ ex:"Aplica la jerarquía: <b>paréntesis → multiplicaciones y divisiones (de izquierda a derecha) → sumas y restas</b>.<br>"+en+" = "+val+".",
+ pi:"Primero resuelve el paréntesis; las multiplicaciones y divisiones van antes que las sumas."}});
+RE.push(function(){var t=choice(["neg","frac","zero","negexp"]),en,val,d;
+ if(t==="neg"){var a=rnd(2,5),n=choice([2,3,4]);en="(-"+a+")"+sup(n);val=Math.pow(a,n);d=[-val,a*val,-Math.pow(a,n)+(n===3?1:-1),Math.pow(a,n-1)]}
+ else if(t==="frac"){var p=rnd(1,4),q=p+rnd(1,4),k=choice([2,3]);en="("+p+"/"+q+")"+sup(k);var f=F(Math.pow(p,k),Math.pow(q,k));val=fStr(f);d=[fStr(F(Math.pow(q,k),Math.pow(p,k))),fStr(F(Math.pow(p,k-1),Math.pow(q,k-1))),p^k+"/"+(q^k)]}
+ else if(t==="zero"){var a=rnd(2,9);en=a+sup(0);val="1";d=[a,"0",String(a+1),String(a-1),String(a*a)]}
+ else{var a=rnd(2,5),k=choice([2,3]);en=a+sup(-k);var f2=F(1,Math.pow(a,k));val=fStr(f2);d=[fStr(F(Math.pow(a,k),1)),fStr(F(1,Math.pow(a,k-1))),fStr(F(a,Math.pow(a,k)))]}
+ return{en:"Calcula: "+en,ok:val,d:d,
+ ex:t==="neg"?"Una potencia de exponente <b>par</b> da resultado positivo; de exponente <b>impar</b>, negativo.<br>("+"-"+a+")"+sup(n)+" = "+val
+ :t==="frac"?"Una potencia de una fracción eleva el numerador y el denominador: ("+p+"/"+q+")"+sup(k)+" = "+p+sup(k)+"/"+q+sup(k)+" = "+val
+ :t==="zero"?"Cualquier número distinto de 0 elevado a 0 vale <b>1</b>."
+ :"Un exponente negativo indica <b>inverso</b>: "+en+" = 1/("+a+sup(k)+") = "+val+".",
+ pi:"Ojo con el signo: (-a)ⁿ es positivo si n es par y negativo si n es impar."}});
+RE.push(function(){var a=rnd(2,9),b=choice([2,3,5,6,7,10,11]),c=rnd(2,9);while(c===a)c=rnd(2,9);
+ var N=a*a*b;
+ return{en:"Simplifica: √"+N,ok:a+"√"+b,d:[b+"√"+a,"√"+N,c+"√"+b,(a+1)+"√"+b],
+ ex:"Buscamos un factor que sea cuadrado perfecto: "+N+" = "+a+"²·"+b+".<br>√"+N+" = √("+a+"²·"+b+") = √"+a+"² · √"+b+" = "+a+"√"+b+".",
+ pi:"Saca fuera de la raíz los factores que sean cuadrados perfectos (4, 9, 16, 25…)."}});
+RE.push(function(){var t=choice(["ad","sa"]);
+ if(t==="ad"){var a=rnd(11,99),e=choice([3,4,5]);if(a%10===0)a+=rnd(1,9);var v=a/Math.pow(10,e);
+  return{en:"Escribe en forma decimal: "+a+"×10"+sup(-e),ok:decN(v),d:[decN(a/Math.pow(10,e-1)),decN(a/Math.pow(10,e+1)),decN(v*10),a+"×10"+sup(-(e+1))],
+  ex:"El exponente negativo indica que movemos la coma "+e+" lugares a la <b>izquierda</b>.<br>"+a+"×10"+sup(-e)+" = "+dec(v)+".",
+  pi:"Exponente negativo: la coma se mueve hacia la izquierda."}}
+ var m=choice([45,72,62,35,18,64]),z=rnd(2,6),v=parseFloat("0."+"0".repeat(z-1)+m);
+ var man=(m/10).toString().replace(".",","),s=man+"×10"+sup(-z);
+ return{en:"Escribe en notación científica: "+dec(v),ok:s,
+ d:[man+"×10"+sup(-(z+1)),man+"×10"+sup(-(z-1)),(m/100).toString().replace(".",",")+"×10"+sup(-z),m+"×10"+sup(-z)],
+ ex:"Colocamos la coma tras la primera cifra significativa y contamos los lugares que se desplaza:<br>"+dec(v)+" = "+s+" (la coma se mueve "+z+" lugares a la derecha).",
+ pi:"En notación científica la mantisa debe ser un número entre 1 y 10."}});
+RE.push(function(){var a=rnd(2,4),b=rnd(2,5),c=rnd(2,20),d=rnd(1,5),k=rnd(2,5),s=k*k,t=choice(["p1","p2","p3"]),en,val,d;
+ if(c%d)c=d*rnd(2,20);
+ if(c%d)en=a+"·"+b+sup(2)+" + "+c+"×"+d;else en=a+"·"+b+sup(2)+" - "+c+" ÷ "+d;
+ var val1=a*b*b+c*d,val2=a*b*b-c/d;
+ if(t==="p1"){en=a+"·"+b+sup(2)+" - "+c+" ÷ "+d;val=a*b*b-c/d;d=[a*a*b-c/d,(a*b)*b-c/d,val+1,-val]}
+ else if(t==="p2"){en=a+sup(2)+" - "+b+"·("+k+" + "+d+")";val=a*a-b*(k+d);d=[a*a-b*k+d,(a*a-b)*(k+d),val-1,-val]}
+ else{en="("+a+" + "+s+")·"+d+" - "+b+sup(2);val=(a+s)*d-b*b;d=[(a+s)*(d-b)*0+val+1,(a+s)*d+b*b,val-2,-val]}
+ return{en:"Calcula: "+en,ok:String(val),d:d.map(String),
+ ex:"Orden: <b>paréntesis → potencias y raíces → multiplicaciones y divisiones → sumas y restas</b>.<br>"+en+" = "+val+".",
+ pi:"Primero las potencias, luego multiplicaciones y divisiones, y al final sumas y restas."}});
+RE.push(function(){var t=choice(["prod","suma","rac"]),a,b,N,en,d,ok,ex;
+ if(t==="prod"){a=choice([2,3,5,6,7,10,11]);b=choice([2,3,5,6,7,8,12]);N=a*b;var sq=1;for(var i=2;i*i<=N;i++)if(N%(i*i)===0)sq=i;
+   if(sq===1){a=2;b=8;N=16;sq=4}
+  var rrest=N/(sq*sq);
+  ok=rrest===1?String(sq):(sq+"√"+rrest);
+  en="Calcula: √"+a+"·√"+b;
+  d=rrest===1?[String(sq+1),String(sq-1),String(sq+2),String(N),"√"+N]:["√"+(a+b),ok==="√"+N?null:("√"+N),sq+"√"+(a*b),(sq+1)+"√"+rrest];
+   d=d.filter(function(x){return x!=null&&x!==ok});ex="√"+a+"·√"+b+" = √("+a+"·"+b+") = √"+N+".<br>Como "+N+" = "+sq+"²·"+rrest+", el resultado es <b>"+ok+"</b>."}
+ else if(t==="suma"){a=choice([2,3,5,6,7,10,11]);b=rnd(1,7);var c2=rnd(2,9);ok=(b+c2)+"√"+a;en="Calcula: "+b+"√"+a+" + "+c2+"√"+a;
+  d=[(b+c2)+"√"+(a*2),b+"√"+(a+c2),(b*c2)+"√"+a,(b+c2+1)+"√"+a].filter(function(x){return x!==ok});
+  ex="Son <b>radicales semejantes</b> (mismo radicando "+a+"): se suman solo los coeficientes.<br>"+b+"√"+a+" + "+c2+"√"+a+" = ("+b+" + "+c2+")√"+a+" = <b>"+ok+"</b>."}
+ else{a=choice([3,5,7]);var q=rnd(2,4),num=q*a;ok=q+"√"+a;en="Racionaliza: "+num+"/√"+a;
+  d=[num+"√"+a,q+"/√"+a,(q+1)+"√"+a,q+"√"+(q*a)].filter(function(x){return x!==ok});
+  ex="Multiplicamos numerador y denominador por √"+a+":<br>"+num+"/√"+a+" = ("+num+"·√"+a+")/("+a+") = "+num+"/"+a+"·√"+a+" = <b>"+ok+"</b>."}
+ return{en:en,ok:ok,d:d,ex:ex,pi:"Recuerda: √a·√b = √(a·b). Solo se pueden sumar radicales semejantes."}});
+RE.push(function(){var l1=rnd(-7,2),sp=rnd(4,8),h1=l1+sp,l2=l1+rnd(1,sp-1),h2=h1+rnd(-1,3);
+ if(h2<l2+3)h2=l2+rnd(3,6);
+ var inf=choice([0,0,0,1]);
+ var A=inf?mkIv(-INF,true,h1,choice([true,false])):mkIv(l1,choice([true,false]),h1,choice([true,false]));
+ var B=inf?mkIv(l2,choice([true,false]),INF,true):mkIv(l2,choice([true,false]),h2,choice([true,false]));
+ var op=choice(["∩","∪"]),ans=op==="∩"?ivInter(A,B):ivUnion(A,B),d=[];
+ d.push(ivStr(op==="∩"?ivUnion(A,B):ivInter(A,B)));
+ var f=flipO(ans);if(f)d.push(ivStr(f));else d.push(ivStr(other(ans)));
+ d.push(ivStr({lo:ans.lo,loOpen:ans.loOpen,hi:ans.hi,hiOpen:!ans.hiOpen}));
+ d.push(ivStr({lo:A.lo,loOpen:false,hi:A.hi,hiOpen:false}));
+ d.push(ivStr(A));
+ d.push(ivStr(B));
+ d.push(ivStr(ivInter(A,B)));
+ return{en:"Siendo A = "+ivStr(A)+" y B = "+ivStr(B)+", calcula A "+op+" B",ok:ivStr(ans),d:d,
+ ex:op==="∩"?"La intersección A ∩ B son los elementos <b>comunes</b> a los dos intervalos.<br>El extremo izquierdo es el mayor de los izquierdos y el derecho, el menor de los derechos:<br>A ∩ B = <b>"+ivStr(ans)+"</b>."
+ :"La unión A ∪ B contiene <b>todos</b> los elementos de uno u otro intervalo:<br>A ∪ B = <b>"+ivStr(ans)+"</b>.",
+ pi:"Comprueba si cada extremo es abierto ( ) o cerrado [ ]: cambia el intervalo."}});
+RE.push(function(){var t=choice(["pot","inv","sum"]);
+ if(t==="pot"){var b=choice([2,3,4,5]),k=rnd(1,4);
+  return{en:"Calcula: log"+sb(b)+"("+b+sup(k)+")",ok:String(k),d:[String(k+1),String(k-1),String(-k),String(k*2)],
+  ex:"log"+sb(b)+"(x) pregunta: ¿qué exponente damos a "+b+" para obtener x?<br>Como "+b+sup(k)+" = "+Math.pow(b,k)+", el logaritmo vale <b>"+k+"</b>.",
+  pi:"El logaritmo es el exponente: log_b(bᵏ) = k."}}
+ if(t==="inv"){var b=choice([2,3,5]),n=rnd(1,3);
+  return{en:"Calcula: log"+sb(b)+"(1/"+Math.pow(b,n)+")",ok:String(-n),d:[String(-n+1),String(n),String(-n-1),String(n+1)],
+  ex:"1/"+b+sup(n)+" = "+b+sup(-n)+", y el logaritmo de una potencia es su exponente.<br>log"+sb(b)+"("+b+sup(-n)+") = <b>"+(-n)+"</b>.",
+  pi:"1/bⁿ = b⁻ⁿ, así que el exponente es negativo."}}
+ var b=choice([2,3]),k1=rnd(1,3),k2=rnd(1,3),op=choice(["+","-"]),val=op==="+"?k1+k2:k1-k2;
+ return{en:"Calcula: log"+sb(b)+"("+Math.pow(b,k1)+") "+op+" log"+sb(b)+"("+Math.pow(b,k2)+")",ok:String(val),
+ d:[String(val+1),String(val-1),String(-val),String(k1*k2)],
+ ex:"Cada logaritmo es un exponente: log"+sb(b)+"("+b+sup(k1)+") = "+k1+" y log"+sb(b)+"("+b+sup(k2)+") = "+k2+".<br>"+k1+" "+op+" "+k2+" = <b>"+val+"</b>.",
+ pi:"Con la misma base puedes juntar los argumentos (bᵏ·bˣ), ¡no multiplicar los logaritmos!"}});
+/* ---------- TEMA 2: POLINOMIOS Y FRACCIONES ALGEBRAICAS ---------- */
+var PO=[];
+function mkPoly(grados,max){var o={};for(var i=0;i<grados.length;i++)o[grados[i]]=max?rnd(2,max):rnd(1,5);return o}
+function randPoly(deg,max){var o={};for(var e=0;e<=deg;e++){var c=rnd(-max,max);if(c||e===0)o[e]=c}o[deg]=rnd(1,max)==0?2:rnd(2,max);return o}
+PO.push(function(){var P=randPoly(2,6),Q=randPoly(2,6),op=choice(["+","-"]),real;
+ if(op==="+")real=polyAdd(P,Q);
+ else{real={};for(var k in P)real[k]=P[k];for(var k in Q){real[k]=(real[k]||0)-Q[k];if(!real[k])delete real[k]}}
+ var ok=polyStr(real),d=polyVariants(real);
+ if(op==="-")d.unshift(polyStr(polyAdd(P,Q)));
+ return{en:polyStr(P)+" "+op+" ("+polyStr(Q)+")",ok:ok,d:d,
+ ex:"Para "+(op==="+"?"sumar":"restar")+" polinomios se <b>reducen los términos semejantes</b>:<br>"+polyStr(P)+" "+op+" ("+polyStr(Q)+") = <b>"+ok+"</b>.",
+ pi:"Solo se pueden sumar los términos con la misma parte literal (mismo exponente de x)."}});
+PO.push(function(){var m=rnd(2,5),e=choice([1,1,2]),P=randPoly(2,6),esc={};
+ for(var k in P)esc[+k+e]=P[k]*m;
+ var ok=polyStr(esc),d=polyVariants(esc);
+ d.push((function(){var w={};for(var k in esc)w[+k+1]=esc[k];return polyStr(w)})());
+ return{en:mono(m,e)+"·("+polyStr(P)+")",ok:ok,d:d,
+ ex:"Se multiplica el monomio por <b>cada término</b> del polinomio:<br>"+mono(m,e)+"·("+polyStr(P)+") = <b>"+ok+"</b>.",
+ pi:"Al multiplicar potencias de la misma base se <b>suman</b> los exponentes, no se multiplican."}});
+function padD(d,ok,extra){extra=extra||[];for(var i=0;i<extra.length&&d.length<4;i++)if(extra[i]!=null&&extra[i]!==ok)d.push(extra[i]);while(d.length<4)d.push("—");return d}
+PO.push(function(){var a=rnd(1,9),m=choice([1,1,2,3]),P={0:a,1:m},prod=polyMul(P,P),ok=polyStr(prod);
+ var d=polyVariants(prod);d.unshift(polyStr({0:a*a,2:m*m}));
+ return{en:"Desarrolla: ("+polyStr(P)+")"+sup(2),ok:ok,d:d,
+ ex:"Cuadrado de una suma: (mx + a)² = m²x² + 2max + a².<br>("+polyStr(P)+")² = <b>"+ok+"</b>.",
+ pi:"(x + a)² ≠ x² + a². El desarrollo tiene tres términos."}});
+PO.push(function(){var a=rnd(1,9),m=choice([1,1,2,3]),P={0:-a,1:m},Q={0:a,1:m},prod=polyMul(P,Q),ok=polyStr(prod);
+ var d=polyVariants(prod);d.unshift(polyStr({0:a*a,2:m*m}));
+ return{en:"Desarrolla: ("+polyStr(P)+")("+polyStr(Q)+")",ok:ok,d:d,
+ ex:"Suma por diferencia: (mx + a)(mx - a) = m²x² - a².<br>("+polyStr(P)+")("+polyStr(Q)+") = <b>"+ok+"</b>.",
+ pi:"(x + a)(x - a) = x² - a²: el resultado no tiene término en x."}});
+PO.push(function(){var m=choice([2,3]),a=rnd(1,6),n=rnd(2,4),q=rnd(1,5);
+ var P={0:q,1:n,2:a},Q={0:rnd(1,4),1:m},prod=polyMul(P,Q),ok=polyStr(prod),d=polyVariants(prod);
+ return{en:"Desarrolla: ("+polyStr(P)+")("+polyStr(Q)+")",ok:ok,d:d,
+ ex:"Multiplicamos <b>cada término</b> del primer polinomio por cada uno del segundo y reducimos términos semejantes.<br>("+polyStr(P)+")("+polyStr(Q)+") = <b>"+ok+"</b>.",
+ pi:"No olvides ningún término: cada monomio del primer polinomio se multiplica por todos los del segundo."}});
+PO.push(function(){var g=rnd(2,4),v=choice(["x","x²"]),e=v==="x"?1:2,rest=randPoly(2,4),poly={};
+ for(var k in rest)poly[+k+e]=rest[k];
+ var coefs={},k2;for(k2 in poly)coefs[k2]=g*poly[k2];
+ var inside={};for(k2 in poly)inside[+k2-e]=poly[k2];
+ var ok=g+"x"+sup(e)+"("+polyStr(inside)+")";
+ var sq=Math.sqrt(g);var first=Math.round(sq)===sq?Math.round(sq)+"x"+sup(e)+"("+polyStr(inside)+")":null;
+ var d=[first,
+        (g+1)+"x"+sup(e)+"("+polyStr(inside)+")",
+        g+"("+polyStr(poly)+")",
+        g+"x"+sup(e+1)+"("+polyStr(inside)+")"].filter(function(x){return x!=null&&x!==ok});
+ var extra=[g+"x("+polyStr(inside)+")",polyStr(coefs)];d=padD(d,ok,extra);
+ return{en:"Saca factor común: "+polyStr(coefs),ok:ok,d:d,
+ ex:"El factor común es "+g+"x"+sup(e)+":<br>"+polyStr(coefs)+" = "+g+"x"+sup(e)+"("+polyStr(inside)+") = <b>"+ok+"</b>.",
+ pi:"El factor común se <b>saca fuera</b> dividiendo cada término entre él."}});
+PO.push(function(){var t=rnd(1,3),ok,d,en,pi,ex;
+ if(t===1){var a=rnd(1,12);ok="(x + "+a+")²";en="Factoriza: x² + "+(2*a)+"x + "+(a*a);
+  d=["(x + "+(a+1)+")²","(x + "+a+")(x + "+(2*a)+")","(x - "+a+")²","(x² + "+a*a+")","x(x + "+(2*a)+")"].filter(function(x){return x!==ok});
+  pi="¿Reconoces un trinomio cuadrado perfecto x² + 2ax + a²?";ex="(x + a)² = x² + 2ax + a² = x² + "+(2*a)+"x + "+(a*a)+", así que a = "+a+"."}
+ else if(t===2){var a=rnd(2,12);ok="(x + "+a+")(x - "+a+")";en="Factoriza: x² - "+(a*a);
+  d=["(x - "+a+")²","(x + "+a+")²","(x - "+(a*a)+")(x + "+(a*a)+")","(x² - "+(a*a)+")","(x + "+(a+a)+")(x - "+(a-a)+")"].filter(function(x){return x!==ok});
+  pi="Diferencia de cuadrados: x² - a² = (x + a)(x - a).";ex="x² - "+(a*a)+" = x² - "+a+"² = (x + "+a+")(x - "+a+")"}
+ else{var a=rnd(1,6),b=rnd(1,6),aa=rnd(2,4),bb=rnd(2,4);ok="("+aa+"x + "+a+")("+bb+"x + "+b+")";
+  var c1=aa*bb,c2=aa*b+a*bb,c3=a*b;en="Factoriza: "+polyStr({0:c3,1:c2,2:c1});
+  d=["("+aa+"x + "+b+")("+bb+"x + "+a+")","("+aa+"x - "+a+")("+bb+"x - "+b+")","("+aa+"x + "+c2+")("+bb+"x + "+c3+")",
+     "("+aa+"x + "+(a+b)+")("+bb+"x + "+(a*b)+")","(x + "+c3+")("+c1+"x + "+c1+")"].filter(function(x){return x!==ok});
+  pi="Busca dos binomios cuyo producto dé el polinomio: (ax + b)(cx + d).";
+  ex="Desarrollamos y comprobamos que da "+polyStr({0:c3,1:c2,2:c1})+":<br>("+aa+"x + "+a+")("+bb+"x + "+b+") = "+aa*bb+"x² + "+(aa*b+a*bb)+"x + "+(a*b)}
+ var extra=["(x + 1)(x + 1)","(x - 1)(x - 1)","(x + 1)(x - 1)","(x + 2)(x + 3)","x(x + 1)","(2x + 1)(2x - 1)","(x + 2)²"];
+ d=padD(d,ok,extra);
+ return{en:en,ok:ok,d:d,ex:"Comprueba desarrollando la factorización.<br>"+ex+".",pi:pi}});
+PO.push(function(){var r=rnd(1,9)*choice([1,-1]),s=rnd(1,9)*choice([1,-1]),b=r+s,c=r*s,rs=function(v){return v<0?"- "+(-v):"+ "+v};
+ while(r+s===0){s=rnd(1,9)*choice([1,-1]);b=r+s;c=r*s}
+ var ok="(x "+rs(r)+")(x "+rs(s)+")",en="Factoriza: "+quad0(b,c);
+ var d=["(x "+rs(b)+")(x "+rs(c)+")","(x "+rs(-r)+")(x "+rs(-s)+")","(x "+rs(r)+")(x "+rs(-s)+")",quad0(b,c)].filter(function(x){return x!==ok});
+ var extra=["(x "+rs(b)+")(x "+rs(r)+")","(x "+rs(r+c)+")(x "+rs(c)+")","(x "+rs(c)+")(x "+rs(b)+")","(x "+rs(-b)+")(x "+rs(r)+")","(x "+rs(b)+")(x "+rs(-r)+")","(x "+rs(r+1)+")(x "+rs(s-1)+")","(x "+rs(r-1)+")(x "+rs(s+1)+")"];
+ d=padD(d,ok,extra);
+ return{en:en,ok:ok,d:d,
+ ex:"Buscamos dos números que <b>multipliquen</b> den "+c+" y <b>sumen</b> "+b+": son "+r+" y "+s+".<br>"+en.replace("Factoriza: ","")+" = <b>"+ok+"</b>.",
+ pi:"Primero busca el producto (término independiente) y después comprueba la suma."}});
+PO.push(function(){var k=rnd(-4,4);if(k===0)k=2;
+ var m=rnd(-5,5),n=rnd(-6,6),div=polyMul({0:-k,1:1},{0:n,1:m,2:1}),
+     divArr=[div[2]||0,div[1]||0,div[0]||0];
+ if(!div[2]){k=1;m=2;n=3;div=polyMul({0:-1,1:1},{0:3,1:2,2:1});divArr=[div[2]||0,div[1]||0,div[0]||0]}
+ var coef=[],cur=0,i;
+ for(i=0;i<divArr.length;i++){cur=(i===0?divArr[0]:coef[i-1]*k+divArr[i]);coef.push(cur)}
+ var q=coef.slice(0,coef.length-1),resto=coef[coef.length-1];
+ var qMap={};for(var i2=0;i2<q.length;i2++)qMap[q.length-1-i2]=q[i2];
+ var ok="Cociente: "+polyStr(qMap)+", Resto: "+resto;
+ var dv=(k<0?"x + "+(-k):"x - "+k);
+ var a1={},a2={},ks=Object.keys(qMap);
+ for(var kk in qMap)a1[kk]=qMap[kk];a1[ks[ks.length-1]]=a1[ks[ks.length-1]]-1;
+ for(var kk in qMap)a2[kk]=qMap[kk];a2[ks[0]]=a2[ks[0]]+k;
+ var d=["Cociente: "+polyStr(qMap)+", Resto: "+(resto+0),"Cociente: "+polyStr(a1)+", Resto: "+resto,
+        "Cociente: "+polyStr(a2)+", Resto: "+resto,
+        "Cociente: "+polyStr(qMap)+", Resto: "+(resto+1),"Cociente: "+polyStr(qMap)+", Resto: "+(-resto)].filter(function(x){return x!==ok});
+ var extra=["Cociente: "+polyStr(qMap)+", Resto: 0"];
+ d=padD(d,ok,extra);
+ return{en:"Divide por Ruffini: ("+polyStr(fromArr(divArr))+") : ("+dv+")",ok:ok,d:d,
+ ex:"Aplicamos la regla de Ruffini con "+k+":<br>bajamos el "+q[0]+" → multiplicamos por "+k+" y sumamos, repetimos.<br>Cociente: <b>"+polyStr(qMap)+"</b>, Resto: <b>"+resto+"</b>.",
+ pi:"Multiplica el último número obtenido por el valor de la raíz y súmalo al siguiente coeficiente."}});
+PO.push(function(){var cf=rnd(1,6),a=rnd(-6,6),b=rnd(-6,6),rs=function(v){return v<0?"- "+(-v):"+ "+v};
+ if(a===b)b=a+rnd(1,3);
+ var fa={0:cf,1:1},fb={0:a,1:1},fc={0:b,1:1};
+ var num=polyMul(fa,fb),den=polyMul(fa,fc);
+ var ok="("+polyStr(fb)+")/("+polyStr(fc)+")";
+ var d=["("+polyStr(fc)+")/("+polyStr(fb)+")","("+polyStr(fb)+")/("+polyStr(fa)+")","("+polyStr(num)+")/("+polyStr(den)+")","("+polyStr(fb)+")/("+polyStr({0:-b,1:1})+")"].filter(function(x){return x!==ok});
+ var extra=["("+polyStr(fa)+")("+polyStr(fb)+")/("+polyStr(fc)+")","("+polyStr({0:-a,1:1})+")/("+polyStr(fc)+")","("+polyStr(fb)+")/("+polyStr({0:-b,1:1})+")","("+polyStr(fa)+")/("+polyStr(fc)+")","("+polyStr(fc)+")/("+polyStr(fb)+")","("+polyStr(fb)+")("+polyStr(fa)+")/("+polyStr(fa)+")("+polyStr(fc)+")"];
+ d=padD(d,ok,extra);
+ return{en:"Simplifica: ("+polyStr(num)+")/("+polyStr(den)+")",ok:ok,d:d,
+ ex:"Factorizamos numerador y denominador:<br>("+polyStr(num)+") = ("+polyStr(fa)+")("+polyStr(fb)+") y ("+polyStr(den)+") = ("+polyStr(fa)+")("+polyStr(fc)+").<br>Simplificamos el factor común ("+polyStr(fa)+") y queda <b>"+ok+"</b>.",
+ pi:"Solo se pueden simplificar <b>factores</b> completos, nunca sumandos sueltos."}});
+/* ---------- TEMA 3: ECUACIONES, INECUACIONES Y SISTEMAS ---------- */
+var EC=[];
+EC.push(function(){var a=rnd(2,9),x=rnd(-9,9),b=rnd(-9,9),c=a*x+b;
+ return{en:"Resuelve: "+a+"x"+(b===0?"":" "+tConst(b))+" = "+c,ok:"x = "+x,d:eqD(x),
+ ex:"Despejamos x: "+a+"x = "+c+(b===0?"":" "+(b<0?"+ "+(-b):"- "+b))+" → "+a+"x = "+(c-b)+" → x = <b>"+x+"</b>.",
+ pi:"Lo que está sumando pasa restando, y lo que multiplica pasa dividiendo."}});
+EC.push(function(){var a=rnd(2,5),b=rnd(-8,8),c=rnd(-8,8),x=rnd(-6,6),d=a*(x+b)+c,ab=a*b;
+ while(b===0){b=rnd(-8,8);x=rnd(-6,6);d=a*(x+b)+c;ab=a*b}
+ return{en:"Resuelve: "+a+"(x "+tConst(b)+")"+(c===0?"":" "+tConst(c))+" = "+d,ok:"x = "+x,d:eqD(x),
+ ex:"Quitamos paréntesis: "+a+"x "+(ab===0?"":tCoef(ab,""))+" "+(c===0?"":tCoef(c,""))+" = "+d+".<br>"+a+"x = "+d+(ab===0?"":" - "+Math.abs(ab))+" → x = <b>"+x+"</b>.",
+ pi:"Aplica la propiedad distributiva: multiplica el número de fuera por cada término del paréntesis."}});
+EC.push(function(){var t=choice(["A","B","C"]);
+ if(t==="A"){var q=rnd(2,6),r=rnd(2,6),p=rnd(-9,9),x=q*r-p;while(p===0)p=rnd(-9,9);
+  return{en:"Resuelve: (x "+(p<0?"- "+(-p):"+ "+p)+")/"+q+" = "+r,ok:"x = "+x,d:["x = "+(r-p),"x = "+(q*r+p),"x = "+(x+1),"x = "+(-x)],
+  ex:"Multiplicamos los dos miembros por "+q+": x "+(p<0?"- "+(-p):"+ "+p)+" = "+q+"\u00b7"+r+" = "+(q*r)+".<br>x = "+(q*r)+" "+(p<0?"+ "+(-p):"- "+p)+" = <b>"+x+"</b>.",
+  pi:"Para quitar un denominador multiplica los dos miembros de la ecuaci\u00f3n."}}
+ if(t==="B"){var q=rnd(2,6),r=rnd(2,6),p=rnd(-9,9),x=q*(r-p);while(p===0)p=rnd(-9,9);
+  return{en:"Resuelve: x/"+q+" "+(p<0?"- "+(-p):"+ "+p)+" = "+r,ok:"x = "+x,d:["x = "+(r-p),"x = "+(q*r+p),"x = "+(q*(r+p)),"x = "+(-x)],
+  ex:"Agrupamos: x/"+q+" = "+r+" "+(p<0?"+ "+(-p):"- "+p)+" = "+(r-p)+".<br>Multiplicamos por "+q+": x = <b>"+x+"</b>.",
+  pi:"El t\u00e9rmino independiente pasa al otro lado cambiando de signo."}}
+ var q=rnd(2,5),q2=rnd(2,5);if(q===q2)q2=q+1;var Lm=q*q2/gcd(q,q2),m=rnd(1,4),x=Lm*m,c=Math.round(Lm*(m/q+m/q2));
+ return{en:"Resuelve: x/"+q+" + x/"+q2+" = "+c,ok:"x = "+x,d:["x = "+(c*q),"x = "+(c*q2),"x = "+(x+Lm),"x = "+(-x)],
+ ex:"El m.c.m.("+q+", "+q2+") = "+Lm+". Multiplicamos toda la ecuaci\u00f3n por "+Lm+":<br>"+(Lm/q)+"x + "+(Lm/q2)+"x = "+(Lm*c)+" \u2192 "+Lm+"x = "+(Lm*c)+" \u2192 x = <b>"+x+"</b>.",
+ pi:"Con denominadores distintos, multiplica por el m\u00ednimo com\u00fan m\u00faltiplo."}});
+EC.push(function(){var r=rnd(1,8)*choice([1,-1]),s=rnd(1,8)*choice([1,-1]),b=-(r+s),c=r*s,ok="x = "+r+" y x = "+s,d;
+ if(b*b-4*c<0){r=2;s=3;b=-5;c=6;ok="x = "+r+" y x = "+s}
+ d=eq2(r,s).concat(["No tiene solución real"]).filter(function(v){return v!==ok});
+ return{en:"Resuelve: "+quad0(b,c)+" = 0",ok:ok,d:d,
+ ex:"Aplicamos la fórmula x = (-b ± √(b² - 4ac)) / 2a con a = 1, b = "+b+", c = "+c+".<br>Discriminante = "+b*b+" - 4·"+c+" = "+(b*b-4*c)+" → x = <b>"+r+"</b> y x = <b>"+s+"</b>.",
+ pi:"Comprueba el discriminante: si b² - 4ac < 0 no hay soluciones reales."}});
+EC.push(function(){var t=choice(["ax","bx"]);
+ if(t==="ax"){var a=rnd(1,3),m=rnd(1,5);
+  return{en:"Resuelve: "+(a===1?"x²":a+"x²")+" - "+(a*m*m)+" = 0",ok:"x = "+m+" y x = "+(-m),d:["x = "+m,"x = "+(-m),"x = "+(m*m)+" y x = "+(-(m*m)),"x = "+m+" y x = "+m,"x = "+(-m)+" y x = "+(-m)],
+  ex:"Despejamos: "+(a===1?"x²":a+"x²")+" = "+(a*m*m)+" → x² = "+m*m+" → x = ±√"+m*m+" = ±"+m+".<br>Soluciones: <b>x = "+m+"</b> y <b>x = "+(-m)+"</b>.",
+  pi:"Si x² = k con k > 0 hay dos soluciones: ±√k."}}
+ var a=rnd(1,3),b=a*rnd(1,9),xb=-b/a;
+ return{en:"Resuelve: "+(a===1?"x²":a+"x²")+" + "+(b===1?"x":b+"x")+" = 0",ok:"x = "+xb+" y x = 0",d:["x = "+(-xb)+" y x = 0","x = "+xb,"x = 0","x = "+(xb+1)+" y x = 0","x = "+(b+" y x = 0")],
+ ex:"Sacamos factor común: x("+(a===1?"x":a+"x")+" + "+b+") = 0.<br>Un producto es 0 si algún factor vale 0: x = 0 • "+(a===1?"x":a+"x")+" + "+b+" = 0 → x = <b>"+xb+"</b>.",
+ pi:"Si no hay término independiente, saca factor común x."}});
+EC.push(function(){var t=choice(["num","edad","geo"]),x,en,ex;
+ if(t==="num"){var k=rnd(2,5),p=rnd(1,12);x=rnd(2,20);var r=k*x+p;
+  en="El "+({2:"doble",3:"triple",4:"cuádruple",5:"quE0ntuplo"})[k]+" de un número aumentado en "+p+" es "+r+". ¿Cuál es el número?";
+  ex="Planteamos la ecuación "+k+"x + "+p+" = "+r+".<br>"+k+"x = "+(r-p)+" → x = <b>"+x+"</b>."}
+ else if(t==="edad"){var h=rnd(3,20),d=rnd(1,6),e=3*h-d;
+  x=h;
+  en="La edad de Marta es el triple de la de su hijo menos "+d+" años. Si Marta tiene "+e+" años, ¿uántos tiene su hijo?";
+  ex="Edad del hijo: x. Entonces 3x - "+d+" = "+e+" → 3x = "+(e+d)+" → x = <b>"+h+"</b>."}
+ else{var hh=rnd(2,8),bb=3*hh,pp=2*(bb+hh);x=bb;
+  en="El perímetro de un rectángulo es "+pp+" cm. Si la base es el triple de la altura, ¿uánto mide la base?";
+  ex="Altura = x, base = 3x. Perímetro = 2(x + 3x) = "+pp+" → 8x = "+pp+" → x = "+hh+" → base = <b>"+bb+"</b>."}
+ return{en:en,ok:String(x),d:[x-1,x+1,-x,x+2].map(String),ex:ex,pi:"Asigna la incógnita a lo que te piden y traduce el enunciado a una ecuación."}});
+EC.push(function(){var a=choice([2,3,4,-2,-3,-4]),x=rnd(-9,9),b=rnd(-9,9),d=a*x+b,op=choice(["<","≤",">","≥"]);
+ var flip=function(o){if(o==="<")return ">";if(o===">")return "<";if(o==="≤")return "≥";return "≤"};
+ var real=a>0?op:flip(op);
+ var half=function(o,v,cl){var up=(o===">"||o==="≥"),clsd=(o==="≤"||o==="≥")||cl;
+  if(up)return (clsd?"[":"(")+v+", ∞)";
+  return "(-∞, "+v+(clsd?"]":")")};
+ var ans=half(real,x,false);
+ var dA=[half(real,x,true),half(op,x,false),half(real,x+1,false),half(real,x-1,false),half(real,x+2,false),half(flip(real),x,false),half(real,x-2,false)];
+ var flecha=function(o){return o==="<"||o==="≤"?"<":">"};
+ return{en:"Resuelve: "+a+"x "+(b===0?"":tCoef(b,""))+" "+op+" "+(a*x+b),ok:ans,d:dA,
+ ex:"Despejamos como en una ecuación: "+a+"x "+(op==="<"||op==="≤"?">":"<")+" "+(d-b)+(a<0?". Al dividir entre "+a+" (negativo) <b>cambia el sentido</b> de la desigualdad":"")+" → x "+flecha(real)+" <b>"+x+"</b>.",
+ pi:"Si multiplicas o divides por un número negativo, el sentido de la desigualdad <b>cambia</b>."}});
+EC.push(function(){var r=rnd(-6,4),s=r+choice([1,2,3,4]),b=-(r+s),c=r*s,strict=choice([true,false]);
+ while(b===0){r=rnd(-6,4);s=r+choice([1,2,3,4]);b=-(r+s);c=r*s}
+ var ans=(strict?"(":"[")+r+", "+s+(strict?")":"]");
+ var d=[strict?"["+r+", "+s+"]":"("+r+", "+s+")",
+        "(-∞, "+r+") ∪ ("+s+", ∞)",
+        strict?"(-∞, "+r+"] ∪ ["+s+", ∞)":"("+r+", "+s+")",
+        "("+r+", "+(s+1)+")"].filter(function(v){return v!==ans});
+ d.push(strict?"["+r+", "+s+"]":"("+r+", "+s+")");
+ d.push("("+s+", "+r+")");
+ return{en:"Resuelve: "+quad0(b,c)+" "+(strict?"<":"≤")+" 0",ok:ans,d:d,
+ ex:"La parabólica (hacia arriba) es negativa <b>entre</b> sus raíces x = "+r+" y x = "+s+".<br>Solución: <b>"+ans+"</b>"+(strict?" (extremos abiertos: no se incluyen).":" (extremos cerrados: se incluyen)."),
+ pi:"Mira la parabólica: señala dónde queda por debajo del eje X."}});
+EC.push(function(){var a,b,c,d2,x,y0,tries=0;
+ do{a=rnd(-4,4);b=rnd(-4,4);c=rnd(-4,4);d2=rnd(-4,4);tries++}
+ while((a*d2-b*c)===0&&tries<50);
+ if(a*d2-b*c===0){a=2;b=-1;c=1;d2=3}
+ var X=rnd(-5,5),Y=rnd(-5,5),e1=a*X+b*Y,e2=c*X+d2*Y;
+ return{en:"Resuelve el sistema:\n"+lin2(a,b)+" = "+e1+"\n"+lin2(c,d2)+" = "+e2,
+  ok:"(x, y) = ("+X+", "+Y+")",d:sysD(X,Y),
+  ex:"Por reducci\u00f3n o sustituci\u00f3n (p. ej. multiplicamos para eliminar una inc\u00f3gnita).<br>La soluci\u00f3n es x = "+X+", y = "+Y+" \u2192 <b>("+X+", "+Y+")</b>.",
+  pi:"Multiplica cada ecuaci\u00f3n por un n\u00famero para que una inc\u00f3gnita quede igual y poder restar."}});
+EC.push(function(){var X=rnd(-4,4),Y=rnd(-4,4),Z=rnd(-4,4),rows=[],tries=0,det=0;
+ function d3(a,b,c,d,e,f,g,h,i){return a*(e*i-f*h)-b*(d*i-f*g)+c*(d*h-e*g)}
+ while(det===0&&tries<200){tries++;rows=[];
+  for(var i=0;i<3;i++)rows.push([rnd(-3,3),rnd(-3,3),rnd(-3,3)]);
+  det=d3(rows[0][0],rows[0][1],rows[0][2],rows[1][0],rows[1][1],rows[1][2],rows[2][0],rows[2][1],rows[2][2])}
+ if(det===0){rows=[[1,1,0],[0,1,1],[1,0,1]]}
+ var e=[];for(var j=0;j<3;j++)e.push(rows[j][0]*X+rows[j][1]*Y+rows[j][2]*Z);
+ var filas=[];for(var j=0;j<3;j++)filas.push(lin3(rows[j][0],rows[j][1],rows[j][2])+" = "+e[j]);
+ var NN="\n";
+ return{en:"Resuelve el sistema:"+NN+filas[0]+NN+filas[1]+NN+filas[2],
+  ok:"(x, y, z) = ("+X+", "+Y+", "+Z+")",d:sys3D(X,Y,Z),
+  ex:"Por el método de Gauss o por reducción: se eliminan incógnitas hasta obtener ecuaciones con una sola.<br>Resultado: x = "+X+", y = "+Y+", z = "+Z+" → <b>("+X+", "+Y+", "+Z+")</b>.",
+  pi:"Suma o resta ecuaciones para eliminar incógnitas paso a paso."}});/* ---------- TEMAS ---------- */
+var TEMAS={
+ reales:{nombre:"N\u00fameros reales",icono:"🔢",desc:"Fracciones, potencias, ra\u00edces, notaci\u00f3n cient\u00edfica, intervalos y logaritmos",niveles:RE},
+ polinomios:{nombre:"Polinomios y fracciones algebraicas",icono:"🧩",desc:"Operaciones, factorizaci\u00f3n, Ruffini y fracciones algebraicas",niveles:PO},
+ ecuaciones:{nombre:"Ecuaciones, inecuaciones y sistemas",icono:"⚖️",desc:"Ecuaciones, problemas, inecuaciones y sistemas",niveles:EC}
+};
+/* ---------- opciones ---------- */
+function withOptions(g){
+ var opts=[g.ok],seen={};seen[g.ok]=1;
+ var ds=g.d||[];
+ for(var i=0;i<ds.length&&opts.length<5;i++){var v=ds[i];if(v!=null&&!seen[v]){seen[v]=1;opts.push(v)}}
+ var base=numOf(g.ok),offs=[1,-1,2,-2,3,-3,4,-4,5,-5,10,-10,100,-100],oj=0;
+ var dvars=[];
+ var parts=String(g.ok).split(/(-?\d+(?:,\d+)?)/g);
+ for(var pi=1;pi<parts.length&&dvars.length<8;pi+=2){
+  var pn=parts[pi].replace(",","."),pd=[1,-1,2,-2,3];
+  for(var pd2=0;pd2<pd.length&&dvars.length<8;pd2++){
+   var q2=parseFloat(pn)+pd[pd2];
+   if(Math.abs(q2-Math.round(q2))<1e-9)q2=Math.round(q2);
+   var parts2=parts.slice();parts2[pi]=String(q2).replace(".",",");
+   var cand=parts2.join("");
+   if(cand!==String(g.ok)&&dvars.indexOf(cand)<0)dvars.push(cand);
+  }
+ }
+ while(opts.length<5){
+  var cand=null;
+  if(base!=null&&String(g.ok).indexOf("/")>0)cand=frVar(g.ok,oj%5);
+  else if(base!=null)cand=fmtNum(base+offs[oj%offs.length]);
+  else if(dvars.length)cand=dvars.shift();
+  else cand=g.ok+" ("+(oj+1)+")";
+  if(cand!=null&&!seen[cand]){seen[cand]=1;opts.push(cand)}
+  oj++;
+  if(oj>200)break;
+ }
+ function numOf(v){var m=String(v).replace(",",".").match(/^(-?\d+(?:\.\d+)?)(?:\/(\d+))?$/);if(!m)return null;return m[2]?+m[1]/+m[2]:+m[1]}
+ function fmtNum(v){if(Math.abs(v-Math.round(v))<1e-9)return String(Math.round(v));return decN(v)}
+ function frVar(v,i){var p=v.split("/"),n=+p[0],d=+p[1],k=[1,-1,2,-2,3][i%5],f2=F(n+k*d,d);return f2.n+"/"+f2.d}
+ var orden=shuffle(opts);
+ return{en:g.en,opciones:orden,correcta:orden.indexOf(g.ok),ex:g.ex||"",pi:g.pi||"",ok:g.ok};
+}
+function nuevaPregunta(tema,nivel){
+ var gen=TEMAS[tema].niveles[nivel-1];
+ var q=withOptions(gen());
+ return q;
+}
+/* ---------- estado y UI ---------- */
+var app=(typeof document!=="undefined")?document.getElementById("app"):null;
+var est={tema:null,nivel:1,aciertos:0,fallos:[],q:null,erroresEj:0,espera:false};
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+function renderInicio(){
+ var h='<h1>📚 Mates en pr\u00e1ctica</h1><p class="sub">Elige un tema: 10 ejercicios con dificultad ascendente. Dos fallos en el mismo ejercicio terminan la prueba.</p><div class="temas">';
+ for(var k in TEMAS){var t=TEMAS[k];
+  h+='<button class="tema" data-accion="tema" data-tema="'+k+'"><span class="ico">'+t.icono+'</span><span><b>'+t.nombre+'</b><span>'+t.desc+'</span></span></button>'}
+ h+='</div><p class="foot">Funciona sin conexi\u00f3n \u00b7 100% local</p>';
+ app.innerHTML=h;
+}
+function renderPregunta(){
+ var t=TEMAS[est.tema],q=est.q;
+ var dots="";for(var i=1;i<=10;i++){var c=i<est.nivel?(i<=est.aciertos?"ok":"bad"):(i===est.nivel?"now":"");
+  dots+='<div class="pt '+c+'"></div>'}
+ var h='<div class="meta"><span>'+t.icono+" "+t.nombre+'</span><span>Ejercicio '+est.nivel+' de 10 \u00b7 Aciertos: '+est.aciertos+'</span></div><div class="prog">'+dots+'</div>';
+ h+='<div class="card"><div class="q">'+esc(q.en).replace(/\n/g,"<br>")+'</div><div class="opts" id="opts">';
+ var letras=["A","B","C","D","E"];
+ for(var i=0;i<q.opciones.length;i++){
+  h+='<button class="op" data-accion="op" data-i="'+i+'"><span class="l">'+letras[i]+'</span><span>'+esc(q.opciones[i])+'</span></button>'}
+ h+='</div><div id="fb"></div></div>';
+ h+='<div class="acts"><button class="btn ghost" data-accion="inicio">\u2190 Cambiar de tema</button></div>';
+ app.innerHTML=h;
+}
+function renderFinal(superada){
+ var total=est.aciertos,nf=est.fallos.length;
+ var h='<div class="card" style="text-align:center"><div style="font-size:2.6rem">'+(superada?"🎉":"📈")+'</div>';
+ h+='<h2>'+(superada?"\u00a1Prueba superada!":"Prueba terminada")+'</h2>';
+ h+='<div class="nota">'+total+'/10</div>';
+ h+='<p class="sub">'+(superada?"Has acertado los 10 ejercicios.":nf===0?"Ning\u00fan fallo \u00a1perfecto!":"Has fallado "+nf+(nf===1?" ejercicio":" ejercicios")+". Repasa:")+'</p></div>';
+ if(nf){h+='<div class="card"><b>Repaso de los errores</b><div style="height:10px"></div>';
+  for(var i=0;i<est.fallos.length;i++){var f=est.fallos[i];
+   h+='<div class="rep"><div class="ej">'+esc(f.en).replace(/\n/g," \u00b7 ")+'</div><div class="sol">Soluci\u00f3n correcta: '+esc(f.ok)+'</div><div class="exp">'+f.ex+'</div></div>'}
+  h+='</div>'}
+ h+='<div class="acts"><button class="btn" data-accion="repetir">🔁 Repetir tema</button>';
+ h+='<button class="btn ghost" data-accion="inicio">🏠 Elegir otro tema</button></div>';
+ app.innerHTML=h;
+}
+function mostrarFb(tipo,titulo,texto,ex){
+ var fb=document.getElementById("fb");
+ fb.innerHTML='<div class="fb '+tipo+'"><div class="t '+tipo+'">'+titulo+'</div>'+texto+(ex?'<div style="margin-top:6px;color:#475569">'+ex+'</div>':'')+'</div>';
+ fb.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+function marcar(i,clase){
+ var bs=document.querySelectorAll("#opts .op");
+ if(bs[i]){bs[i].classList.add(clase);bs[i].disabled=true}
+}
+function bloquearTodos(){var bs=document.querySelectorAll("#opts .op");for(var i=0;i<bs.length;i++)bs[i].disabled=true}
+function btnSiguiente(txt,accion){
+ var acts=document.querySelector(".acts");
+ var b=document.createElement("button");
+ b.className="btn";b.textContent=txt;b.setAttribute("data-accion",accion);
+ acts.insertBefore(b,acts.firstChild);
+}
+function responder(i){
+ if(est.espera)return;
+ var q=est.q;
+ if(i===q.correcta){
+  est.espera=true;
+  marcar(i,"right");bloquearTodos();
+  est.aciertos++;
+  est.fallos=est.fallos;
+  mostrarFb("good","\u00a1Correcto!",est.erroresEj?"Resuelto al segundo intento.":"Muy bien.",q.ex);
+  btnSiguiente(est.nivel>=10?"🏁 Ver resultado":"Siguiente ejercicio \u2192","siguiente");
+ }else{
+  marcar(i,"wrong");
+  est.erroresEj++;
+  if(est.erroresEj>=2){
+   est.espera=true;bloquearTodos();
+   marcar(q.correcta,"right");
+   est.fallos.push({en:q.en,ok:q.ok,ex:q.ex});
+   mostrarFb("bad","Has fallado dos veces: prueba terminada","La respuesta correcta era <b>"+esc(q.ok)+"</b>.",q.ex);
+   btnSiguiente("📈 Ver resultado final","final");
+  }else{
+   mostrarFb("bad","No es correcto","Elige otra opci\u00f3n. Pista: "+esc(q.pi||"piensa en la operaci\u00f3n que est\u00e1s usando."));
+  }
+ }
+}
+function siguiente(){
+ est.nivel++;
+ if(est.nivel>10){renderFinal(true);return}
+ est.erroresEj=0;est.espera=false;
+ est.q=nuevaPregunta(est.tema,est.nivel);
+ renderPregunta();
+}
+function iniciar(tema){
+ est.tema=tema;est.nivel=1;est.aciertos=0;est.fallos=[];est.erroresEj=0;est.espera=false;
+ est.q=nuevaPregunta(tema,1);
+ renderPregunta();
+}
+if(typeof document!=="undefined"){
+document.addEventListener("click",function(ev){
+ var el=ev.target.closest("[data-accion]");
+ if(!el)return;
+ var a=el.getAttribute("data-accion");
+ if(a==="tema")iniciar(el.getAttribute("data-tema"));
+ else if(a==="op")responder(parseInt(el.getAttribute("data-i"),10));
+ else if(a==="siguiente")siguiente();
+ else if(a==="final")renderFinal(false);
+ else if(a==="repetir")iniciar(est.tema);
+ else if(a==="inicio")renderInicio();
+});
+renderInicio();
+}
+</script>
+</body>
+</html>
